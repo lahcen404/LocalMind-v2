@@ -31,7 +31,7 @@ class ResponseController extends Controller
         return view('responses.edit',compact('response'));
     }
 
-    // update 
+    // update
 
     public function update(Request $request, Response $response){
         if (Auth::id() !== $response->user_id) {
