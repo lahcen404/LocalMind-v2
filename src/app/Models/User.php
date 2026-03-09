@@ -8,20 +8,27 @@ use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable,HasApiTokens;
 
-   
+
     protected $fillable = [
-        'name',    
+        'name',
         'email',
         'password',
+        'role',
+    ];
+
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'role' => UserRole::class, 
     ];
 
 
-    
     protected $hidden = [
         'password',
         'remember_token',
@@ -43,9 +50,9 @@ class User extends Authenticatable
         return $this->belongsToMany(Question::class, 'favorites')->withTimestamps();
     }
 
-    
 
-    
+
+
     protected function casts(): array
     {
         return [
