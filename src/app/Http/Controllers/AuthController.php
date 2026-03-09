@@ -11,33 +11,45 @@ use Illuminate\Validation\ValidationException;
 class AuthController extends Controller
 {
     // registeer
-    public function register(Request $request)
+   public function register(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|min:3|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:8',
-            'device_name' => 'required'
+            'device_name' => 'required',
+            'role' => 'nullable|string'
         ]);
+
+
+        $roleToAssign = UserRole::MEMBER;
+
+        if ($request->has('role')) {
+
+            $requestedRole = UserRole::tryFrom(strtolower($request->role));
+            if ($requestedRole) {
+                $roleToAssign = $requestedRole;
+            }
+        }
 
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'role' => UserRole::MEMBER
+            'role' => $roleToAssign
         ]);
 
-        // generate tokeen
+        $roleValue = $user->role instanceof UserRole ? $user->role->value : UserRole::MEMBER->value;
         $token = $user->createToken($request->device_name)->plainTextToken;
 
         return response()->json([
-            'message' => 'Identity successfully registered in the network.',
+            'message' => 'User registered successfully!!',
             'token' => $token,
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'role' => $user->role->value
+                'role' => $roleValue
             ]
         ], 201);
     }
