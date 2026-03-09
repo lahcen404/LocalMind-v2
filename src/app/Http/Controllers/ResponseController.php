@@ -2,59 +2,61 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserRole;
+use App\Http\Resources\ResponseResource;
 use App\Models\Question;
-use App\Models\Response;
+use App\Models\Response as UserResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ResponseController extends Controller
 {
-    public function store(Request $request, Question $question)
+   public function store(Request $request, Question $question)
     {
         $validated = $request->validate([
-            'content' => 'required|min:5',
+            'content' => 'required|min:5|max:2000',
         ]);
 
-        $question->responses()->create([
+        // creaate a response for the question
+        $response = $question->responses()->create([
             'user_id' => Auth::id(),
             'content' => $validated['content'],
         ]);
 
-        return back()->with('success', 'You added response successfully!!!');
+        return response()->json([
+            'message' => 'Intelligence contribution recorded.',
+            'data' => new ResponseResource($response)
+        ], 201);
     }
 
-    // edit
-    public function edit(Response $response){
-        if(Auth::id() !== $response->user_id){
-            return back()->with('error','You cannot edit this question !!!');
-        }
-        return view('responses.edit',compact('response'));
-    }
-
-    // update
-
-    public function update(Request $request, Response $response){
+    //update a response
+    public function update(Request $request, UserResponse $response)
+    {
         if (Auth::id() !== $response->user_id) {
-            return abort(403, 'You cannot update this response!!');
+            return response()->json(['message' => 'You cannot update !!'], 403);
         }
 
         $validated = $request->validate([
-            'content' => 'required|min:5',
+            'content' => 'required|min:5|max:2000',
         ]);
 
         $response->update($validated);
-        return redirect()->route('questions.show', $response->question_id)
-            ->with('success', 'Response updateed successfully');
+
+        return response()->json([
+            'message' => 'Intelligence updated.',
+            'data' => new ResponseResource($response)
+        ]);
     }
 
-    public function destroy(Response $response)
+    // delete a response
+    public function destroy(UserResponse $response)
     {
-        if (Auth::id() !== $response->user_id) {
-            return back()->with('error', 'you cannot delete this response!!');
+        // only author or admin can delete
+        if (Auth::id() === $response->user_id || Auth::user()->role === UserRole::ADMIN) {
+            $response->delete();
+            return response()->json(['message' => 'Response deleted successfully!!']);
         }
 
-        $response->delete();
-
-        return back()->with('success', 'Response removed !!');
+        return response()->json(['message' => 'Unauthorized!!'], 403);
     }
 }

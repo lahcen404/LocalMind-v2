@@ -28,7 +28,7 @@ class QuestionController extends Controller
             ->latest()
             ->paginate(15);
 
-        
+
         return QuestionResource::collection($questions);
     }
 
