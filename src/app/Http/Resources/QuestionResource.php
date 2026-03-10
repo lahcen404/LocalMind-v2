@@ -31,9 +31,11 @@ class QuestionResource extends JsonResource
             ],
 
             'metrics' => [
-                'responses_count' => $this->responses_count ?? 0,
-                'favorites_count' => $this->favorited_by_count ?? 0,
+                'responses_count' => (int) ($this->responses_count ?? $this->responses()->count()),
+                'favorites_count' => (int) ($this->favorited_by_count ?? $this->favoritedBy()->count()),
             ],
+            'responses' => ResponseResource::collection($this->whenLoaded('responses')),
+
         ];
     }
 }
