@@ -1,10 +1,10 @@
-# 🧠 LocalMind – Application Web Communautaire
+# 🧠 LocalMind – Community Web Application
 
 ## 📌 Description
 
-**LocalMind** est une application web communautaire développée avec **Laravel** (backend) et **Vue.js** (frontend), permettant aux utilisateurs de poser des **questions localisées** et d’obtenir des **réponses d’utilisateurs proches**, afin de favoriser l’entraide locale.
+**LocalMind** is a community web application built with **Laravel** (backend) and **Vue.js** (frontend). Users can ask **location-based questions** and get **answers from people nearby**, fostering local help and exchange.
 
-L’application est **dockerisée** : backend, frontend, base de données et reverse proxy tournent dans des conteneurs Docker.
+The application is **dockerized**: backend, frontend, database, and reverse proxy all run in Docker containers.
 
 ---
 
@@ -19,65 +19,65 @@ L’application est **dockerisée** : backend, frontend, base de données et rev
 ### Frontend
 * **Vue.js 3** (Composition API)
 * **Vite 5** (build & dev server)
-* **Tailwind CSS v4** (styles)
-* **Axios** (requêtes HTTP vers l’API)
-* **Lucide Vue** (icônes)
-* **Font Awesome** (icônes complémentaires)
+* **Tailwind CSS v4** (styling)
+* **Axios** (HTTP requests to the API)
+* **Lucide Vue** (icons)
+* **Font Awesome** (additional icons)
 
 ### Infrastructure
 * **Docker** & **Docker Compose**
-* **Nginx** (reverse proxy pour le backend Laravel)
-* **PgAdmin** (administration PostgreSQL)
+* **Nginx** (reverse proxy for Laravel backend)
+* **PgAdmin** (PostgreSQL administration)
 
 ---
 
-## 🐳 Dockerisation
+## 🐳 Docker
 
-Le projet est entièrement dockerisé. Les services définis dans `docker-compose.yml` :
+The project is fully dockerized. Services defined in `docker-compose.yml`:
 
-| Service     | Description                    | Port (exemple) |
-|------------|---------------------------------|----------------|
-| **app**    | Laravel (PHP-FPM)               | via nginx      |
-| **frontend** | Vue.js + Vite (dev server)    | 5173           |
+| Service     | Description                     | Port (example) |
+|------------|----------------------------------|----------------|
+| **app**    | Laravel (PHP-FPM)                | via nginx      |
+| **frontend** | Vue.js + Vite (dev server)     | 5173           |
 | **nginx**  | Reverse proxy (PHP / API)       | 80             |
-| **postgres** | Base PostgreSQL               | 5432           |
-| **pgadmin** | Interface d’admin PostgreSQL  | 5050 (à définir dans `.env`) |
+| **postgres** | PostgreSQL database            | 5432           |
+| **pgadmin** | PostgreSQL admin UI             | 5050 (set in `.env`) |
 
-### Démarrer l’application avec Docker
+### Run the application with Docker
 
-À la racine du dossier `LocalMind` (où se trouve `docker-compose.yml`) :
+From the `LocalMind` root (where `docker-compose.yml` lives):
 
 ```bash
-# Copier l’exemple d’environnement et renseigner les variables
+# Copy the example env file and set your variables
 cp .env.example .env
 
-# Construire et lancer tous les services
+# Build and start all services
 docker compose up -d
 
-# Rebuild du frontend (si besoin, après changement de config)
+# Rebuild frontend (e.g. after config changes)
 docker compose build --no-cache frontend && docker compose up -d frontend
 ```
 
-* **Frontend (Vue)** : http://localhost:5173  
-* **Backend (API / app Laravel)** : selon la config Nginx (ex. http://localhost avec `PHP_PORT=80`)
+* **Frontend (Vue)**: http://localhost:5173  
+* **Backend (API / Laravel app)**: depends on Nginx config (e.g. http://localhost with `PHP_PORT=80`)
 
 ---
 
-## ⚙️ Fonctionnalités
+## ⚙️ Features
 
-* 🔐 Authentification (Utilisateur / Admin)
-* 💬 Questions : création, modification, suppression, recherche par lieu ou mot-clé
-* 💡 Réponses aux questions
-* ⭐ Favoris
-* 📊 Statistiques (optionnel)
+* 🔐 Authentication (User / Admin)
+* 💬 Questions: create, edit, delete, search by location or keyword
+* 💡 Answers to questions
+* ⭐ Favorites
+* 📊 Statistics (optional)
 
 ---
 
-## 🗄️ Base de données
+## 🗄️ Database
 
-Tables : `users`, `questions`, `responses`, `favorites`
+Tables: `users`, `questions`, `responses`, `favorites`
 
-Relations principales :
+Main relationships:
 
 ```php
 User hasMany Questions
@@ -88,17 +88,17 @@ User hasMany Favorites
 
 ---
 
-## 📁 Structure du projet
+## 📁 Project structure
 
 ```
 LocalMind/
-├── backend/          # Laravel (API, auth, modèles)
+├── backend/          # Laravel (API, auth, models)
 │   └── Dockerfile
 ├── frontend/         # Vue 3 + Vite + Tailwind
 │   └── Dockerfile
-├── nginx/            # Config Nginx
+├── nginx/            # Nginx config
 ├── docker-compose.yml
-└── .env              # Variables d’environnement (à créer depuis .env.example)
+└── .env              # Environment variables (create from .env.example)
 ```
 
 ---
