@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\QuestionController;
+use App\Http\Controllers\ResponseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -22,11 +23,15 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
-     
+     // Queestion routes
     Route::post('/questions', [QuestionController::class, 'store']);
     Route::put('/questions/{question}', [QuestionController::class, 'update']);
     Route::delete('/questions/{question}', [QuestionController::class, 'destroy']);
 
+    // response
+    Route::post('/questions/{question}/responses', [ResponseController::class, 'store']);
+    Route::put('/responses/{response}', [ResponseController::class, 'update']);
+    Route::delete('/responses/{response}', [ResponseController::class, 'destroy']);
 
 
 });
