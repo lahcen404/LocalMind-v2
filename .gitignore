@@ -1,8 +1,7 @@
 .env
 node_modules/
-dist/
 frontend/node_modules/
-.vite/
+frontend/dist/
 frontend/.vite/
 dist-ssr/
 .env.local
