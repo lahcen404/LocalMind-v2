@@ -4,75 +4,96 @@ namespace App\Http\Controllers;
 
 use App\Enums\UserRole;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    public function showRegister(){
-        return view('auth.register');
-    }
-
-    public function showLogin(){
-        return view('auth.login');
-    }
-
-    public function register(Request $request){
-
-    $validated = $request->validate([
-        'name' => 'required|min:3|max:255',
-        'email' => 'required|email|unique:users,email',
-        'password' => 'required|min:8'
-    ]);
-
-    $user = User::create([
-        'name' => $validated['name'],
-        'email' => $validated['email'],
-        'password' => Hash::make($validated['password'])
-    ]);
-
-    // Auth::login($user);
-
-    return redirect()->route('login');
-    }
-
-    // login 
-
-    public function login(Request $request){
-
-        $credentials =$request->validate([
-            'email'=> 'required|email',
-            'password'=>'required'
+    // registeer
+   public function register(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|min:3|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|min:8',
+            'device_name' => 'required',
+            'role' => 'nullable|string'
         ]);
 
-        if(Auth::attempt($credentials,$request->remember)){
 
-            $request->session()->regenerate();
+        $roleToAssign = UserRole::MEMBER;
 
-            $user = Auth::user();
+        if ($request->has('role')) {
 
-        if($user->role === UserRole::ADMIN){
-            return redirect()->route('admin.dashboard');
+            $requestedRole = UserRole::tryFrom(strtolower($request->role));
+            if ($requestedRole) {
+                $roleToAssign = $requestedRole;
+            }
         }
-            return redirect()->route('dashboard');
-        }
-        
-        throw ValidationException::withMessages([
-            'email' => 'Email or Password incorrect try again'
+
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'role' => $roleToAssign
         ]);
-    
+
+        $roleValue = $user->role instanceof UserRole ? $user->role->value : UserRole::MEMBER->value;
+        $token = $user->createToken($request->device_name)->plainTextToken;
+
+        return response()->json([
+            'message' => 'User registered successfully!!',
+            'token' => $token,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $roleValue
+            ]
+        ], 201);
+    }
+
+    // login
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+            'device_name' => 'required',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        // Check if user exists and password is correct
+        if (! $user || ! Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'message' => 'Your credentials are incorrect!!'
+            ], 401);
+        }
+
+        // generate new tokeen
+        $token = $user->createToken($request->device_name)->plainTextToken;
+
+        return response()->json([
+            'token' => $token,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role->value
+            ]
+        ]);
     }
 
     // logout
+    public function logout(Request $request)
+    {
+        // delete tokeen for current device
+        $request->user()->currentAccessToken()->delete();
 
-    public function logout(Request $request){
-        Auth::logout();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return redirect()->route('login');
+        return response()->json([
+            'message' => 'Tokeen deleted successfully!!'
+        ]);
     }
 }

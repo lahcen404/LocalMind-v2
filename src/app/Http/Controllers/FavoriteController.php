@@ -2,30 +2,34 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\QuestionResource;
 use App\Models\Question;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
 
 class FavoriteController extends Controller
 {
-      public function index()
+       public function index()
     {
-        
         $questions = Auth::user()
             ->favoriteQuestions()
-            ->with(['user', 'responses', 'favoritedBy'])
+            ->with(['user'])
+            ->withCount(['responses', 'favoritedBy'])
             ->latest()
-            ->get();
+            ->paginate(15);
 
-        return view('questions.favorites', compact('questions'));
+        return QuestionResource::collection($questions);
     }
-    public function toggle(Question $question)
+     public function toggle(Question $question)
     {
-        $user = Auth::user();
+        // toggle for like & unlike btn
+        $status = Auth::user()->favoriteQuestions()->toggle($question->id);
 
-        
-        $user->favoriteQuestions()->toggle($question->id);
+        $isAttached = count($status['attached']) > 0;
 
-        return back();
+        return response()->json([
+            'message' => $isAttached ? 'Question added to favorites !' : 'Question removed from favorites !',
+            'is_favorited' => $isAttached,
+            'favorites_count' => $question->favoritedBy()->count()
+        ]);
     }
 }
