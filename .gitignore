@@ -1,6 +1,9 @@
 .env
 node_modules/
 dist/
+frontend/node_modules/
+.vite/
+frontend/.vite/
 dist-ssr/
 .env.local
 .env.*.local
