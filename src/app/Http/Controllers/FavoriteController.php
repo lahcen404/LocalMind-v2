@@ -10,7 +10,7 @@ class FavoriteController extends Controller
 {
       public function index()
     {
-        
+
         $questions = Auth::user()
             ->favoriteQuestions()
             ->with(['user', 'responses', 'favoritedBy'])
@@ -23,7 +23,7 @@ class FavoriteController extends Controller
     {
         $user = Auth::user();
 
-        
+
         $user->favoriteQuestions()->toggle($question->id);
 
         return back();
