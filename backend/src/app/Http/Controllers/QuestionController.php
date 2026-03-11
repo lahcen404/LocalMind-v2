@@ -7,8 +7,42 @@ use App\Http\Resources\QuestionResource;
 use App\Models\Question;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use OpenApi\Annotations as OA;
 class QuestionController extends Controller
 {
+   /**
+    * @OA\Get(
+    *     path="/api/questions",
+    *     tags={"Questions"},
+    *     summary="List questions",
+    *     @OA\Parameter(
+    *         name="keyword",
+    *         in="query",
+    *         required=false,
+    *         description="Filter questions by keyword",
+    *         @OA\Schema(type="string")
+    *     ),
+    *     @OA\Parameter(
+    *         name="location",
+    *         in="query",
+    *         required=false,
+    *         description="Filter questions by location",
+    *         @OA\Schema(type="string")
+    *     ),
+    *     @OA\Parameter(
+    *         name="page",
+    *         in="query",
+    *         required=false,
+    *         description="Pagination page number",
+    *         @OA\Schema(type="integer", minimum=1)
+    *     ),
+    *     @OA\Response(
+    *         response=200,
+    *         description="Paginated question list",
+    *         @OA\JsonContent(ref="#/components/schemas/QuestionPaginatedResponse")
+    *     )
+    * )
+    */
    public function index(Request $request)
     {
         $keyword = $request->input('keyword');
@@ -33,6 +67,32 @@ class QuestionController extends Controller
     }
 
     // create a question
+    /**
+     * @OA\Post(
+     *     path="/api/questions",
+     *     tags={"Questions"},
+     *     summary="Create a new question",
+     *     security={{"sanctum":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/QuestionRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Question created successfully",
+     *         @OA\JsonContent(ref="#/components/schemas/QuestionMutationResponse")
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")
+     *     )
+     * )
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -50,6 +110,29 @@ class QuestionController extends Controller
     }
 
     // show a single question
+    /**
+     * @OA\Get(
+     *     path="/api/questions/{question}",
+     *     tags={"Questions"},
+     *     summary="Show a question with its responses",
+     *     @OA\Parameter(
+     *         name="question",
+     *         in="path",
+     *         required=true,
+     *         description="Question id",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Question details",
+     *         @OA\JsonContent(ref="#/components/schemas/QuestionResource")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Question not found"
+     *     )
+     * )
+     */
     public function show(Question $question)
     {
         $question->load(['user', 'responses.user']);
@@ -57,6 +140,44 @@ class QuestionController extends Controller
     }
 
     // update a question
+    /**
+     * @OA\Put(
+     *     path="/api/questions/{question}",
+     *     tags={"Questions"},
+     *     summary="Update a question",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="question",
+     *         in="path",
+     *         required=true,
+     *         description="Question id",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/QuestionRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Question updated successfully",
+     *         @OA\JsonContent(ref="#/components/schemas/QuestionMutationResponse")
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(ref="#/components/schemas/UnauthorizedResponse")
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")
+     *     )
+     * )
+     */
     public function update(Request $request, Question $question)
     {
         if (Auth::id() !== $question->user_id) {
@@ -78,6 +199,35 @@ class QuestionController extends Controller
     }
 
     // delete a question
+    /**
+     * @OA\Delete(
+     *     path="/api/questions/{question}",
+     *     tags={"Questions"},
+     *     summary="Delete a question",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="question",
+     *         in="path",
+     *         required=true,
+     *         description="Question id",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Question deleted successfully",
+     *         @OA\JsonContent(ref="#/components/schemas/MessageResponse")
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(ref="#/components/schemas/UnauthorizedResponse")
+     *     )
+     * )
+     */
     public function destroy(Question $question)
     {
         if (Auth::id() === $question->user_id || Auth::user()->role === UserRole::ADMIN) {

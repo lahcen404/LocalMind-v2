@@ -59,7 +59,46 @@ docker compose build --no-cache frontend && docker compose up -d frontend
 ```
 
 * **Frontend (Vue)**: http://localhost:5173  
-* **Backend (API / Laravel app)**: depends on Nginx config (e.g. http://localhost with `PHP_PORT=80`)
+* **Backend (API / Laravel app)**: `http://localhost:8080` by default when `PHP_PORT=8080`
+
+---
+
+## Swagger API Docs
+
+Swagger is enabled for the Laravel backend through `l5-swagger`.
+
+### Access URLs
+
+* **Swagger UI**: `http://localhost:8080/api/documentation`
+* **OpenAPI JSON**: `http://localhost:8080/docs`
+
+### Generate or refresh the docs
+
+From `backend/src`:
+
+```bash
+php artisan l5-swagger:generate
+```
+
+In this project, `L5_SWAGGER_GENERATE_ALWAYS=true` is enabled for local development, so the docs can also refresh automatically when the backend is running.
+
+### Authorize protected endpoints
+
+Protected routes use **Laravel Sanctum** bearer tokens.
+
+1. Call `POST /api/register` or `POST /api/login`
+2. Copy the returned token
+3. Open Swagger UI
+4. Click **Authorize**
+5. Paste the token as a **Bearer token**
+
+### Docker note
+
+For Swagger UI assets and docs to load correctly in Docker, the backend `APP_URL` should match the exposed backend port, for example:
+
+```env
+APP_URL=http://localhost:8080
+```
 
 ---
 
