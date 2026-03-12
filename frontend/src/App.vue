@@ -1,8 +1,10 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import Login from '@/components/Login.vue'
+import Register from '@/components/Register.vue'
 
 const user = ref(null)
+const authMode = ref('login')
 
 onMounted(() => {
   const savedUser = localStorage.getItem('lm_user')
@@ -29,6 +31,14 @@ const onLoginSuccess = (userData) => {
   }
 }
 
+const switchToRegister = () => {
+  authMode.value = 'register'
+}
+
+const switchToLogin = () => {
+  authMode.value = 'login'
+}
+
 const logout = () => {
   localStorage.removeItem('lm_token')
   localStorage.removeItem('lm_user')
@@ -40,7 +50,16 @@ const logout = () => {
   <main class="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-6 font-sans">
     
     <!-- if user is not logged in -->
-    <Login v-if="!user" @login-success="onLoginSuccess" />
+    <Login
+      v-if="!user && authMode === 'login'"
+      @login-success="onLoginSuccess"
+      @switch-to-register="switchToRegister"
+    />
+    <Register
+      v-else-if="!user"
+      @register-success="onLoginSuccess"
+      @switch-to-login="switchToLogin"
+    />
 
     <!-- if user is logged in -->
     <div v-else class="text-center animate-in fade-in zoom-in duration-500">

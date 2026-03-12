@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import api from '@/services/api';
 
 
-const emit = defineEmits(['login-success']);
+const emit = defineEmits(['login-success', 'switch-to-register']);
 
 const email = ref('');
 const password = ref('');
@@ -86,9 +86,19 @@ const handleLogin = async () => {
             <button type="submit" :disabled="loading" 
                 class="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-black py-4 rounded-xl shadow-lg transition-all active:scale-95 uppercase tracking-widest text-[10px]">
                 <span v-if="loading">Processing Identity...</span>
-                <span v-else>Authorize Session</span>
+                <span v-else>Login</span>
             </button>
         </form>
+
+        <div class="mt-6 text-center relative z-10">
+            <button
+                type="button"
+                @click="emit('switch-to-register')"
+                class="text-zinc-400 hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors"
+            >
+                Need an account? Register
+            </button>
+        </div>
     </div>
 </template>
 
