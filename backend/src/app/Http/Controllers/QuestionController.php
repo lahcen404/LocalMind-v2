@@ -62,6 +62,16 @@ class QuestionController extends Controller
             ->latest()
             ->paginate(15);
 
+        if (Auth::check()) {
+            $favoritedIds = Auth::user()
+                ->favoriteQuestions()
+                ->whereIn('questions.id', $questions->pluck('id'))
+                ->pluck('questions.id')
+                ->flip();
+            foreach ($questions as $q) {
+                $q->setAttribute('is_favorited', $favoritedIds->has($q->id));
+            }
+        }
 
         return QuestionResource::collection($questions);
     }
@@ -136,6 +146,9 @@ class QuestionController extends Controller
     public function show(Question $question)
     {
         $question->load(['user', 'responses.user']);
+        if (Auth::check()) {
+            $question->setAttribute('is_favorited', $question->isFavoritedBy(Auth::user()));
+        }
         return new QuestionResource($question);
     }
 
