@@ -37,14 +37,13 @@ const logout = () => {
   localStorage.removeItem('lm_user')
   user.value = null
   selectedQuestionId.value = null
-  console.log("🔌 Terminal Session Terminated.")
 }
 </script>
 
 <template>
   <main class="min-h-screen bg-zinc-950 text-white font-sans selection:bg-indigo-500/30">
     
-    <!-- NAVIGATION BAR (Visible only when logged in) -->
+    <!-- navbar -->
     <nav v-if="user" class="border-b border-zinc-900 bg-zinc-950/80 backdrop-blur-xl sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
             <!-- Logo -->
@@ -71,14 +70,13 @@ const logout = () => {
 
     <!-- CONTENT  -->
     <div class="container mx-auto">
-        <!-- 2. Show Login if user is null -->
+      
         <div v-if="!user" class="min-h-[90vh] flex items-center justify-center p-6">
             <Login @login-success="onLoginSuccess" />
         </div>
 
         <!-- Questioons -->
         <div v-else class="animate-in fade-in duration-1000">
-            <!-- Display Details if an ID is selected, otherwise show the Feed -->
             <QuestionDetail 
                 v-if="selectedQuestionId" 
                 :question-id="selectedQuestionId" 
