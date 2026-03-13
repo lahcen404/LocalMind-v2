@@ -3,7 +3,6 @@ import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import api from "@/services/api";
 
-// With props: true, the route param :id is passed as prop "id"
 const props = defineProps({
     id: {
         type: [String, Number],
@@ -27,6 +26,15 @@ const fetchQuestion = async () => {
     } finally {
         loading.value = false;
     }
+};
+
+const toggleFavorite = async () => {
+    if (!question.value?.id) return;
+    try {
+        const { data } = await api.post(`/questions/${question.value.id}/favorite`);
+        question.value.is_favorited = data.is_favorited;
+        if (question.value.metrics) question.value.metrics.favorites_count = data.favorites_count;
+    } catch (_) {}
 };
 
 onMounted(fetchQuestion);
@@ -70,14 +78,25 @@ watch(() => props.id, fetchQuestion);
                     {{ question.content }}
                 </div>
 
-                <div class="flex items-center gap-4 relative z-10">
-                    <div class="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
-                        {{ question.author?.initial }}
+                <div class="flex items-center justify-between relative z-10">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                            {{ question.author?.initial }}
+                        </div>
+                        <div>
+                            <p class="text-white font-bold">{{ question.author?.name }}</p>
+                            <p class="text-zinc-500 text-[10px] uppercase tracking-widest font-black">Community Source</p>
+                        </div>
                     </div>
-                    <div>
-                        <p class="text-white font-bold">{{ question.author?.name }}</p>
-                        <p class="text-zinc-500 text-[10px] uppercase tracking-widest font-black">Community Source</p>
-                    </div>
+                    <button
+                        @click="toggleFavorite"
+                        class="flex items-center gap-2 px-4 py-2 rounded-xl border transition-colors"
+                        :class="question.is_favorited ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-zinc-800/50 border-zinc-700 text-zinc-400 hover:text-red-400 hover:border-red-500/30'"
+                        :title="question.is_favorited ? 'Remove from favorites' : 'Add to favorites'"
+                    >
+                        <i :class="question.is_favorited ? 'fa-solid fa-heart' : 'fa-regular fa-heart'"></i>
+                        <span class="text-[10px] font-bold">{{ question.metrics?.favorites_count ?? 0 }}</span>
+                    </button>
                 </div>
             </article>
 

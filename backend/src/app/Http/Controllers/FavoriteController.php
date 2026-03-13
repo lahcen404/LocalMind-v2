@@ -42,6 +42,10 @@ class FavoriteController extends Controller
             ->latest()
             ->paginate(15);
 
+        foreach ($questions as $q) {
+            $q->setAttribute('is_favorited', true);
+        }
+
         return QuestionResource::collection($questions);
     }
     /**

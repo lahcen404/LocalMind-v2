@@ -3,6 +3,7 @@ import Login from '@/components/Login.vue';
 import Register from '@/components/Register.vue';
 import QuestionFeed from '@/components/QuestionFeed.vue';
 import QuestionDetail from '@/components/QuestionDetail.vue';
+import Favorites from '@/components/Favorites.vue';
 
 const routes = [
   {
@@ -21,6 +22,12 @@ const routes = [
     path: '/',
     name: 'Feed',
     component: QuestionFeed,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/favorites',
+    name: 'Favorites',
+    component: Favorites,
     meta: { requiresAuth: true }
   },
   {

@@ -45,8 +45,16 @@ const goToFeed = () => router.push('/')
                 <span class="font-black italic uppercase tracking-tighter text-lg">LocalMind</span>
             </div>
 
-            <!-- User Meta & Logout -->
+            <!-- Nav + User Meta & Logout -->
             <div class="flex items-center gap-6">
+                <router-link
+                    to="/favorites"
+                    class="flex items-center gap-2 text-zinc-500 hover:text-red-400 transition-colors"
+                    active-class="text-red-400"
+                >
+                    <i class="fa-regular fa-heart text-sm"></i>
+                    <span class="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Favorites</span>
+                </router-link>
                 <div class="flex items-center gap-3">
                     <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest hidden sm:block">
                         Agent: {{ user.name }}
