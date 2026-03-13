@@ -1,21 +1,19 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import Login from '@/components/Login.vue'
-import Register from '@/components/Register.vue'
+import QuestionFeed from '@/components/QuestionFeed.vue' // 1. Import your new component
 
 const user = ref(null)
-const authMode = ref('login')
-const currentYear = new Date().getFullYear()
 
 onMounted(() => {
   const savedUser = localStorage.getItem('lm_user')
 
-  // verify that savedUser is not null, undefined, or the string "null" before parsing
+  // validatioon
   if(savedUser && savedUser !== "undefined" && savedUser !== "null") {
     try {
       user.value = JSON.parse(savedUser)
     } catch (e) {
-      console.error("Erreur de session corrompue :", e)
+      console.error("Session corrupted:", e)
       localStorage.removeItem('lm_user')
     }
   }
@@ -23,126 +21,66 @@ onMounted(() => {
 
 
 const onLoginSuccess = (userData) => {
-  console.log("connected :", userData)
-  
-  if (userData) {
-    user.value = userData
-  } else {
-    console.error("error : data is null")
-  }
+  console.log(" App.vue: Identity Verified!", userData.name)
+  user.value = userData
 }
 
-const switchToRegister = () => {
-  authMode.value = 'register'
-}
-
-const switchToLogin = () => {
-  authMode.value = 'login'
-}
-
+// logout
 const logout = () => {
   localStorage.removeItem('lm_token')
   localStorage.removeItem('lm_user')
   user.value = null
+  console.log("🔌 Terminal Session Terminated.")
 }
 </script>
 
 <template>
-  <div class="min-h-screen bg-zinc-950 text-white flex flex-col font-sans">
-    <header class="border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur">
-      <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
-        <div class="flex items-center gap-3">
-          <div class="w-11 h-11 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
-            <i class="fa-solid fa-brain text-white text-lg"></i>
-          </div>
-          <div>
-            <p class="text-white font-black italic uppercase tracking-tight leading-none">LocalMind</p>
-            <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.35em] mt-1">Community Intelligence Network</p>
-          </div>
+  <main class="min-h-screen bg-zinc-950 text-white font-sans selection:bg-indigo-500/30">
+    
+    <!-- NAVIGATION BAR (Visible only when logged in) -->
+    <nav v-if="user" class="border-b border-zinc-900 bg-zinc-950/80 backdrop-blur-xl sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <!-- Logo -->
+            <div class="flex items-center gap-2 group cursor-pointer">
+                <i class="fa-solid fa-brain text-indigo-500 text-xl group-hover:rotate-12 transition-transform"></i>
+                <span class="font-black italic uppercase tracking-tighter text-lg">LocalMind</span>
+            </div>
+
+            <!-- User Meta & Logout -->
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-3">
+                    <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest hidden sm:block">
+                        Agent: {{ user.name }}
+                    </span>
+                    <button @click="logout" 
+                        class="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-500 hover:text-red-400 hover:border-red-500/30 transition-all active:scale-95"
+                        title="Logout">
+                        <i class="fa-solid fa-power-off text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTENT  -->
+    <div class="container mx-auto">
+        <!-- 2. Show Login if user is null -->
+        <div v-if="!user" class="min-h-[90vh] flex items-center justify-center p-6">
+            <Login @login-success="onLoginSuccess" />
         </div>
 
-        <div class="flex items-center gap-3">
-          <template v-if="!user">
-            <button
-              @click="switchToLogin"
-              :class="authMode === 'login' ? 'bg-indigo-600 text-white border-indigo-500/40' : 'bg-zinc-900 text-zinc-400 border-zinc-800'"
-              class="px-4 py-2 rounded-full border text-[10px] font-black uppercase tracking-widest transition-all"
-            >
-              Login
-            </button>
-            <button
-              @click="switchToRegister"
-              :class="authMode === 'register' ? 'bg-emerald-600 text-white border-emerald-500/40' : 'bg-zinc-900 text-zinc-400 border-zinc-800'"
-              class="px-4 py-2 rounded-full border text-[10px] font-black uppercase tracking-widest transition-all"
-            >
-              Register
-            </button>
-          </template>
-
-          <div v-else class="text-right">
-            <p class="text-white text-sm font-bold">{{ user.name }}</p>
-            <p class="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em]">{{ user.role }}</p>
-          </div>
+        <!-- Questioons -->
+        <div v-else class="animate-in fade-in duration-1000">
+            <QuestionFeed />
         </div>
-      </div>
-    </header>
+    </div>
 
-    <main class="flex-1 flex items-center justify-center px-6 py-10">
-      <!-- if user is not logged in -->
-      <Login
-        v-if="!user && authMode === 'login'"
-        @login-success="onLoginSuccess"
-        @switch-to-register="switchToRegister"
-      />
-      <Register
-        v-else-if="!user"
-        @register-success="onLoginSuccess"
-        @switch-to-login="switchToLogin"
-      />
-
-      <!-- if user is logged in -->
-      <div v-else class="text-center animate-in fade-in zoom-in duration-500">
-        
-        <!-- User Avatar Icon -->
-        <div class="w-24 h-24 bg-indigo-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl border border-indigo-400/30 rotate-3 transition-transform hover:rotate-0">
-          <span class="text-4xl font-black text-white">
-            {{ user.name ? user.name.charAt(0).toUpperCase() : '?' }}
-          </span>
-        </div>
-        
-        <h1 class="text-4xl font-black italic uppercase mb-2 tracking-tighter">
-          Welcome, {{ user.name }}
-        </h1>
-        
-        <p class="text-zinc-500 text-[10px] font-black uppercase tracking-[0.4em] mb-10">
-          LocalMind Identity: {{ user.role }}
-        </p>
-        
-        <!-- Logout Button -->
-        <button @click="logout" 
-          class="text-zinc-500 hover:text-red-400 text-[10px] font-black uppercase tracking-widest border border-zinc-800 px-8 py-3 rounded-full transition-all hover:bg-red-500/10 hover:border-red-500/30 active:scale-95">
-          Log Out
-        </button>
-      </div>
-    </main>
-
-    <footer class="border-t border-zinc-800/80">
-      <div class="max-w-6xl mx-auto px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
-        <p class="text-zinc-500 text-[10px] font-black uppercase tracking-[0.35em]">
-          LocalMind Platform
-        </p>
-        <p class="text-zinc-600 text-[10px] font-bold uppercase tracking-[0.3em]">
-          Secure Local Help • {{ currentYear }}
-        </p>
-      </div>
-    </footer>
-  </div>
+  </main>
 </template>
 
-<style scoped>
-h1 {
-  background: linear-gradient(to bottom right, #ffffff, #71717a);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
+<style>
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #09090b; }
+::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
 </style>
