@@ -1,38 +1,36 @@
 <script setup>
-
-import { ref , onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import api from "@/services/api";
 
+// With props: true, the route param :id is passed as prop "id"
 const props = defineProps({
-    questionId: {
-        type: Number,
+    id: {
+        type: [String, Number],
         required: true
     }
 });
 
+const router = useRouter();
 const question = ref({});
 const error = ref('');
 const loading = ref('');
 
-const emit = defineEmits(['back']);
-
 const fetchQuestion = async () => {
     error.value = '';
     loading.value = true;
-
     try {
-        const { data } = await api.get(`/questions/${props.questionId}`);
+        const { data } = await api.get(`/questions/${props.id}`);
         question.value = data.data ?? data;
-        console.log("Dataaa de question jaat");
     } catch (err) {
-        console.log("error in fetching daata");
-        error.value = "Error in feeetching data !!";
+        error.value = "Error fetching question.";
     } finally {
         loading.value = false;
     }
 };
 
 onMounted(fetchQuestion);
+watch(() => props.id, fetchQuestion);
 </script>
 
 
@@ -40,7 +38,7 @@ onMounted(fetchQuestion);
     <div class="w-full max-w-4xl mx-auto py-8 px-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
         
         <!-- Navigation -->
-        <button @click="emit('back')" class="mb-8 flex items-center gap-2 text-zinc-500 hover:text-white transition-colors group">
+        <button @click="router.push('/')" class="mb-8 flex items-center gap-2 text-zinc-500 hover:text-white transition-colors group">
             <i class="fa-solid fa-arrow-left text-xs group-hover:-translate-x-1 transition-transform"></i>
             <span class="text-[10px] font-black uppercase tracking-widest">Return to Feed</span>
         </button>
