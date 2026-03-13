@@ -1,9 +1,11 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import Login from '@/components/Login.vue'
-import QuestionFeed from '@/components/QuestionFeed.vue' // 1. Import your new component
+import QuestionFeed from '@/components/QuestionFeed.vue'
+import QuestionDetail from '@/components/QuestionDetail.vue'
 
 const user = ref(null)
+const selectedQuestionId = ref(null)
 
 onMounted(() => {
   const savedUser = localStorage.getItem('lm_user')
@@ -19,10 +21,14 @@ onMounted(() => {
   }
 })
 
-
 const onLoginSuccess = (userData) => {
   console.log(" App.vue: Identity Verified!", userData.name)
   user.value = userData
+}
+
+// Logic to handle selecting a question
+const handleSelectQuestion = (id) => {
+    selectedQuestionId.value = id
 }
 
 // logout
@@ -30,6 +36,7 @@ const logout = () => {
   localStorage.removeItem('lm_token')
   localStorage.removeItem('lm_user')
   user.value = null
+  selectedQuestionId.value = null
   console.log("🔌 Terminal Session Terminated.")
 }
 </script>
@@ -41,7 +48,7 @@ const logout = () => {
     <nav v-if="user" class="border-b border-zinc-900 bg-zinc-950/80 backdrop-blur-xl sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
             <!-- Logo -->
-            <div class="flex items-center gap-2 group cursor-pointer">
+            <div @click="selectedQuestionId = null" class="flex items-center gap-2 group cursor-pointer">
                 <i class="fa-solid fa-brain text-indigo-500 text-xl group-hover:rotate-12 transition-transform"></i>
                 <span class="font-black italic uppercase tracking-tighter text-lg">LocalMind</span>
             </div>
@@ -71,7 +78,16 @@ const logout = () => {
 
         <!-- Questioons -->
         <div v-else class="animate-in fade-in duration-1000">
-            <QuestionFeed />
+            <!-- Display Details if an ID is selected, otherwise show the Feed -->
+            <QuestionDetail 
+                v-if="selectedQuestionId" 
+                :question-id="selectedQuestionId" 
+                @back="selectedQuestionId = null" 
+            />
+            <QuestionFeed 
+                v-else 
+                @select-question="handleSelectQuestion" 
+            />
         </div>
     </div>
 

@@ -2,6 +2,8 @@
 import { ref , onMounted } from 'vue';
 import api from "@/services/api";
 
+const emit = defineEmits(['select-question']);
+
 const questions = ref([]);
 const error = ref('');
 const loading = ref('');
@@ -71,8 +73,12 @@ onMounted(fetchQuestions);
 
         <!-- Questions Feed -->
         <div v-else class="space-y-6">
-            <div v-for="q in questions" :key="q.id" 
-                class="bg-zinc-900/40 border border-zinc-800 p-6 rounded-[2rem] hover:border-indigo-500/30 transition-all group relative overflow-hidden shadow-xl">
+            <div
+                v-for="q in questions"
+                :key="q.id"
+                @click="emit('select-question', q.id)"
+                class="bg-zinc-900/40 border border-zinc-800 p-6 rounded-[2rem] hover:border-indigo-500/30 transition-all group relative overflow-hidden shadow-xl cursor-pointer"
+            >
                 
                 <!-- Metadata Bar -->
                 <div class="flex items-center gap-3 mb-4">
