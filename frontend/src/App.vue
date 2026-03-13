@@ -1,43 +1,36 @@
 <script setup>
-import { onMounted, ref } from 'vue'
-import Login from '@/components/Login.vue'
-import QuestionFeed from '@/components/QuestionFeed.vue'
-import QuestionDetail from '@/components/QuestionDetail.vue'
+import { onMounted, ref, provide } from 'vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const user = ref(null)
-const selectedQuestionId = ref(null)
 
 onMounted(() => {
   const savedUser = localStorage.getItem('lm_user')
-
-  // validatioon
-  if(savedUser && savedUser !== "undefined" && savedUser !== "null") {
+  if (savedUser && savedUser !== 'undefined' && savedUser !== 'null') {
     try {
       user.value = JSON.parse(savedUser)
     } catch (e) {
-      console.error("Session corrupted:", e)
+      console.error('Session corrupted:', e)
       localStorage.removeItem('lm_user')
     }
   }
 })
 
-const onLoginSuccess = (userData) => {
-  console.log(" App.vue: Identity Verified!", userData.name)
+const onAuthSuccess = (userData) => {
   user.value = userData
+  router.push('/')
 }
+provide('onAuthSuccess', onAuthSuccess)
 
-// Logic to handle selecting a question
-const handleSelectQuestion = (id) => {
-    selectedQuestionId.value = id
-}
-
-// logout
 const logout = () => {
   localStorage.removeItem('lm_token')
   localStorage.removeItem('lm_user')
   user.value = null
-  selectedQuestionId.value = null
+  router.push('/login')
 }
+
+const goToFeed = () => router.push('/')
 </script>
 
 <template>
@@ -47,7 +40,7 @@ const logout = () => {
     <nav v-if="user" class="border-b border-zinc-900 bg-zinc-950/80 backdrop-blur-xl sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
             <!-- Logo -->
-            <div @click="selectedQuestionId = null" class="flex items-center gap-2 group cursor-pointer">
+            <div @click="goToFeed" class="flex items-center gap-2 group cursor-pointer">
                 <i class="fa-solid fa-brain text-indigo-500 text-xl group-hover:rotate-12 transition-transform"></i>
                 <span class="font-black italic uppercase tracking-tighter text-lg">LocalMind</span>
             </div>
@@ -68,25 +61,16 @@ const logout = () => {
         </div>
     </nav>
 
-    <!-- CONTENT  -->
-    <div class="container mx-auto">
-      
-        <div v-if="!user" class="min-h-[90vh] flex items-center justify-center p-6">
-            <Login @login-success="onLoginSuccess" />
-        </div>
-
-        <!-- Questioons -->
-        <div v-else class="animate-in fade-in duration-1000">
-            <QuestionDetail 
-                v-if="selectedQuestionId" 
-                :question-id="selectedQuestionId" 
-                @back="selectedQuestionId = null" 
-            />
-            <QuestionFeed 
-                v-else 
-                @select-question="handleSelectQuestion" 
-            />
-        </div>
+    <!-- CONTENT -->
+    <div
+      class="container mx-auto"
+      :class="{ 'min-h-screen flex items-center justify-center': !user }"
+    >
+      <router-view v-slot="{ Component }">
+        <transition name="fade" mode="out-in">
+          <component :is="Component" />
+        </transition>
+      </router-view>
     </div>
 
   </main>

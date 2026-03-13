@@ -1,9 +1,9 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, inject } from 'vue';
+import { RouterLink } from 'vue-router';
 import api from '@/services/api';
 
-
-const emit = defineEmits(['login-success', 'switch-to-register']);
+const onAuthSuccess = inject('onAuthSuccess');
 
 const email = ref('');
 const password = ref('');
@@ -32,8 +32,7 @@ const handleLogin = async () => {
             localStorage.setItem('lm_token', token);
             localStorage.setItem('lm_user', JSON.stringify(userData));
 
-            
-            emit('login-success', userData);
+            if (onAuthSuccess) onAuthSuccess(userData);
         } else {
             error.value = "Server returned an unexpected login response.";
         }
@@ -91,13 +90,12 @@ const handleLogin = async () => {
         </form>
 
         <div class="mt-6 text-center relative z-10">
-            <button
-                type="button"
-                @click="emit('switch-to-register')"
+            <RouterLink
+                to="/register"
                 class="text-zinc-400 hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors"
             >
                 Need an account? Register
-            </button>
+            </RouterLink>
         </div>
     </div>
 </template>

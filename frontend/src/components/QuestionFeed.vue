@@ -1,8 +1,9 @@
 <script setup>
-import { ref , onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import api from "@/services/api";
 
-const emit = defineEmits(['select-question']);
+const router = useRouter();
 
 const questions = ref([]);
 const error = ref('');
@@ -76,7 +77,7 @@ onMounted(fetchQuestions);
             <div
                 v-for="q in questions"
                 :key="q.id"
-                @click="emit('select-question', q.id)"
+                @click="router.push(`/questions/${q.id}`)"
                 class="bg-zinc-900/40 border border-zinc-800 p-6 rounded-[2rem] hover:border-indigo-500/30 transition-all group relative overflow-hidden shadow-xl cursor-pointer"
             >
                 
