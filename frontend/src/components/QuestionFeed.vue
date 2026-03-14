@@ -14,6 +14,12 @@ const loading = ref(false);
 const keyword = ref("");
 const location = ref("");
 
+const isOwner = (q) => {
+  if (q?.is_owner === true) return true;
+  if (!user?.value || !q?.author) return false;
+  return Number(q.author.id) === Number(user.value.id);
+};
+
 const toggleFavorite = async (q, e) => {
   e?.stopPropagation?.();
   if (!q.id) return;
@@ -35,6 +41,21 @@ const toggleFavorite = async (q, e) => {
     // Uppdate the reactive state
     q.is_favorited = rawData.is_favorited;
     if (q.metrics) q.metrics.favorites_count = rawData.favorites_count;
+  } catch (_) {}
+};
+
+const goToEdit = (q, e) => {
+  e?.stopPropagation?.();
+  router.push(`/questions/${q.id}`);
+};
+
+const deleteQuestion = async (q, e) => {
+  e?.stopPropagation?.();
+  if (!q.id) return;
+  if (!confirm("Delete this question permanently? This cannot be undone.")) return;
+  try {
+    await api.delete(`/questions/${q.id}`);
+    questions.value = questions.value.filter((x) => x.id !== q.id);
   } catch (_) {}
 };
 
@@ -214,11 +235,12 @@ onMounted(fetchQuestions);
 
         <!-- Card Footer -->
         <div
-          class="flex items-center justify-between border-t border-zinc-800/50 pt-4 mt-auto"
+          class="flex flex-wrap items-center justify-between gap-3 border-t border-zinc-800/50 pt-4 mt-auto"
         >
+          <!-- Author -->
           <div class="flex items-center gap-3">
             <div
-              class="w-8 h-8 bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-500 font-bold text-xs border border-zinc-700"
+              class="w-8 h-8 bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-500 font-bold text-xs border border-zinc-700 shrink-0"
             >
               {{ q.author?.initial || "?" }}
             </div>
@@ -228,35 +250,60 @@ onMounted(fetchQuestions);
             >
           </div>
 
-          <!-- Metrics -->
-          <div class="flex items-center gap-4 text-zinc-600">
-            <div class="flex items-center gap-1.5">
-              <i class="fa-regular fa-comment text-xs"></i>
-              <span class="text-[10px] font-bold">{{
-                q.metrics?.responses_count || 0
-              }}</span>
+          <!-- Right side: actions + metrics -->
+          <div class="flex items-center gap-3 flex-wrap">
+            <!-- Owner actions: Edit & Delete (only for your questions) -->
+            <div
+              v-if="isOwner(q)"
+              class="flex items-center gap-2 pointer-events-auto mr-1"
+            >
+              <button
+                @click="goToEdit(q, $event)"
+                class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-zinc-800/80 border border-zinc-700 text-zinc-400 hover:text-indigo-400 hover:border-indigo-500/40 hover:bg-indigo-500/10 text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95"
+                title="Edit question"
+              >
+                <i class="fa-solid fa-pen text-[10px]"></i>
+                <span>Edit</span>
+              </button>
+              <button
+                @click="deleteQuestion(q, $event)"
+                class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-zinc-800/80 border border-zinc-700 text-zinc-400 hover:text-red-400 hover:border-red-500/40 hover:bg-red-500/10 text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95"
+                title="Delete question"
+              >
+                <i class="fa-solid fa-trash text-[10px]"></i>
+                <span>Delete</span>
+              </button>
             </div>
 
-            <!-- Favorite Button (Propagated to prevent navigating to details) -->
-            <button
-              @click="toggleFavorite(q, $event)"
-              class="flex items-center gap-1.5 hover:text-red-400 transition-colors pointer-events-auto"
-              :class="q.is_favorited ? 'text-red-400' : ''"
-            >
-              <i
-                :class="
-                  q.is_favorited ? 'fa-solid fa-heart' : 'fa-regular fa-heart'
-                "
-                class="text-xs"
-              ></i>
-              <span class="text-[10px] font-bold">{{
-                q.metrics?.favorites_count ?? 0
-              }}</span>
-            </button>
+            <!-- Metrics -->
+            <div class="flex items-center gap-4 text-zinc-600">
+              <div class="flex items-center gap-1.5">
+                <i class="fa-regular fa-comment text-xs"></i>
+                <span class="text-[10px] font-bold">{{
+                  q.metrics?.responses_count || 0
+                }}</span>
+              </div>
 
-            <i
-              class="fa-solid fa-chevron-right text-[10px] group-hover:translate-x-1 transition-transform"
-            ></i>
+              <button
+                @click="toggleFavorite(q, $event)"
+                class="flex items-center gap-1.5 hover:text-red-400 transition-colors pointer-events-auto"
+                :class="q.is_favorited ? 'text-red-400' : ''"
+              >
+                <i
+                  :class="
+                    q.is_favorited ? 'fa-solid fa-heart' : 'fa-regular fa-heart'
+                  "
+                  class="text-xs"
+                ></i>
+                <span class="text-[10px] font-bold">{{
+                  q.metrics?.favorites_count ?? 0
+                }}</span>
+              </button>
+
+              <i
+                class="fa-solid fa-chevron-right text-[10px] group-hover:translate-x-1 transition-transform text-zinc-600"
+              ></i>
+            </div>
           </div>
         </div>
       </div>
