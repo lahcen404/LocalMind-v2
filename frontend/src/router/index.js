@@ -4,6 +4,7 @@ import Register from '@/components/Register.vue';
 import QuestionFeed from '@/components/QuestionFeed.vue';
 import QuestionDetail from '@/components/QuestionDetail.vue';
 import Favorites from '@/components/Favorites.vue';
+import PostQuestion from '../components/PostQuestion.vue';
 
 const routes = [
   {
@@ -31,6 +32,12 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/questions/create',
+    name: 'PostQuestion',
+    component: PostQuestion,
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/questions/:id',
     name: 'QuestionDetail',
     component: QuestionDetail,
@@ -49,11 +56,9 @@ router.beforeEach((to, from, next) => {
   const isAuthenticated = !!localStorage.getItem('lm_token');
 
   // redirect to login if route requires auth and user is not authenticated
-  if (to.meta.requiresAuth && !isAuthenticated) {
-    next('/login');
-  }
+ 
   // redirect to home if route is guest only and user is authenticated
-  else if (to.meta.guestOnly && isAuthenticated) {
+  if (to.meta.guestOnly && isAuthenticated) {
     next('/');
   }
   else {
