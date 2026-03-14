@@ -81,6 +81,13 @@ onMounted(fetchQuestions);
             </div>
             
             <div class="flex gap-2">
+                <!-- Added My Vault / Favorites Button -->
+                <button @click="router.push('/favorites')" 
+                    class="bg-zinc-900 hover:bg-zinc-800 text-rose-400 px-4 py-2 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all active:scale-95 border border-zinc-800 flex items-center gap-2">
+                    <i class="fa-solid fa-heart"></i>
+                    <span>Saved Intel</span>
+                </button>
+
                 <button @click="router.push('/questions/create')" 
                     class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all active:scale-95 shadow-lg shadow-indigo-900/20">
                     New Inquiry

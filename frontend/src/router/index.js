@@ -4,6 +4,7 @@ import Register from '@/components/Register.vue';
 import QuestionFeed from '@/components/QuestionFeed.vue';
 import QuestionDetail from '@/components/QuestionDetail.vue';
 import Favorites from '@/components/Favorites.vue';
+import PostQuestion from '../components/PostQuestion.vue';
 
 const routes = [
   {
@@ -28,6 +29,12 @@ const routes = [
     path: '/favorites',
     name: 'Favorites',
     component: Favorites,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/questions/create',
+    name: 'PostQuestion',
+    component: PostQuestion,
     meta: { requiresAuth: true }
   },
   {
