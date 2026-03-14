@@ -4,7 +4,10 @@ use App\Enums\UserRole;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\QuestionController;
-use App\Http\Controllers\ResponseController; 
+use App\Http\Controllers\ResponseController;
+use App\Models\Question;
+use App\Models\Response as ResponseModel;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -39,12 +42,17 @@ Route::middleware('auth')->group(function () {
         return view('member.dashboard');
     })->name('dashboard');
 
-    // admiin dashboard
+    // admin dashboard (with stats)
     Route::get('/admin/dashboard', function () {
         if (Auth::user()->role != UserRole::ADMIN) {
             return redirect()->route('dashboard')->with('error', 'Access Denied.');
         }
-        return view('admin.dashboard');
+        $stats = [
+            'users_count' => User::count(),
+            'questions_count' => Question::count(),
+            'responses_count' => ResponseModel::count(),
+        ];
+        return view('admin.dashboard', compact('stats'));
     })->name('admin.dashboard');
 
     // favorite

@@ -48,10 +48,10 @@
             </div>
             <p class="text-zinc-400 text-xs font-bold uppercase tracking-widest">Total Users</p>
             <h3 class="text-3xl font-black text-white mt-2">
-                --
+                {{ $stats['users_count'] ?? 0 }}
             </h3>
             <p class="text-emerald-400 text-xs mt-2 flex items-center gap-1">
-                <i class="fa-solid fa-arrow-trend-up"></i> Active now
+                <i class="fa-solid fa-arrow-trend-up"></i> Registered
             </p>
         </div>
 
@@ -62,7 +62,7 @@
             </div>
             <p class="text-zinc-400 text-xs font-bold uppercase tracking-widest">Questions</p>
             <h3 class="text-3xl font-black text-white mt-2">
-                --
+                {{ $stats['questions_count'] ?? 0 }}
             </h3>
             <p class="text-zinc-500 text-xs mt-2">Total posted</p>
         </div>
@@ -74,7 +74,7 @@
             </div>
             <p class="text-zinc-400 text-xs font-bold uppercase tracking-widest">Responses</p>
             <h3 class="text-3xl font-black text-white mt-2">
-                --
+                {{ $stats['responses_count'] ?? 0 }}
             </h3>
             <p class="text-zinc-500 text-xs mt-2">Community engagement</p>
         </div>

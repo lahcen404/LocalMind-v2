@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserRole;
 use App\Http\Resources\QuestionResource;
 use App\Models\Question;
 use Illuminate\Http\Request;
@@ -238,8 +239,10 @@ class QuestionController extends Controller
      */
     public function destroy(Question $question)
     {
-        if (Auth::id() !== $question->user_id) {
-            return response()->json(['message' => 'Unauthorized. You can only delete your own question.'], 403);
+        $isOwner = Auth::id() === $question->user_id;
+        $isAdmin = Auth::user()->role === UserRole::ADMIN;
+        if (! $isOwner && ! $isAdmin) {
+            return response()->json(['message' => 'Unauthorized. You can only delete your own question, or an admin can delete any question.'], 403);
         }
         $question->delete();
         return response()->json(['message' => 'Question deleted successfully!!']);
