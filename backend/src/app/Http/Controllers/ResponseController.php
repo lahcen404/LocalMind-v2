@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\UserRole;
 use App\Http\Resources\ResponseResource;
 use App\Models\Question;
 use App\Models\Response as UserResponse;
@@ -152,12 +151,10 @@ class ResponseController extends Controller
      */
     public function destroy(UserResponse $response)
     {
-        // only author or admin can delete
-        if (Auth::id() === $response->user_id || Auth::user()->role === UserRole::ADMIN) {
-            $response->delete();
-            return response()->json(['message' => 'Response deleted successfully!!']);
+        if (Auth::id() !== $response->user_id) {
+            return response()->json(['message' => 'You can only delete your own response.'], 403);
         }
-
-        return response()->json(['message' => 'Unauthorized!!'], 403);
+        $response->delete();
+        return response()->json(['message' => 'Response deleted successfully!!']);
     }
 }

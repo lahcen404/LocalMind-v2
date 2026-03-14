@@ -87,6 +87,67 @@ const deleteQuestion = async () => {
     }
 };
 
+const newResponseContent = ref('');
+const responseError = ref('');
+const submittingResponse = ref(false);
+
+const addResponse = async () => {
+    const content = newResponseContent.value?.trim() || '';
+    if (!content || content.length < 5) {
+        responseError.value = 'Content must be at least 5 characters.';
+        return;
+    }
+    responseError.value = '';
+    submittingResponse.value = true;
+    try {
+        const { data } = await api.post(`/questions/${props.id}/responses`, { content });
+        const created = data.data ?? data;
+        if (!question.value.responses) question.value.responses = [];
+        question.value.responses.unshift(created);
+        if (question.value.metrics) question.value.metrics.responses_count = (question.value.metrics.responses_count || 0) + 1;
+        newResponseContent.value = '';
+    } catch (err) {
+        const msg = err.response?.data?.message || (err.response?.data?.errors?.content ? err.response.data.errors.content[0] : 'Failed to post response.');
+        responseError.value = msg;
+    } finally {
+        submittingResponse.value = false;
+    }
+};
+
+const editingResponseId = ref(null);
+const editResponseContent = ref('');
+
+const startEditResponse = (res) => {
+    editingResponseId.value = res.id;
+    editResponseContent.value = res.content || '';
+};
+
+const cancelEditResponse = () => {
+    editingResponseId.value = null;
+    editResponseContent.value = '';
+};
+
+const saveResponse = async (res) => {
+    const content = editResponseContent.value?.trim() || '';
+    if (content.length < 5) return;
+    try {
+        const { data } = await api.put(`/responses/${res.id}`, { content });
+        const updated = data.data ?? data;
+        const idx = question.value.responses?.findIndex((r) => r.id === res.id);
+        if (idx !== undefined && idx >= 0) question.value.responses[idx] = updated;
+        cancelEditResponse();
+    } catch (_) {}
+};
+
+const deleteResponse = async (res) => {
+    if (!confirm('Delete this response?')) return;
+    try {
+        await api.delete(`/responses/${res.id}`);
+        question.value.responses = question.value.responses.filter((r) => r.id !== res.id);
+        if (question.value.metrics) question.value.metrics.responses_count = Math.max(0, (question.value.metrics.responses_count || 0) - 1);
+    } catch (_) {}
+};
+
 onMounted(fetchQuestion);
 watch(() => props.id, fetchQuestion);
 </script>
@@ -190,7 +251,7 @@ watch(() => props.id, fetchQuestion);
                 </div>
             </article>
 
-            <!-- 2. RESPONSES SECTION -->
+            <!-- 2. RESPONSES SECTION (CRUD: Create, Read, Update, Delete) -->
             <section class="space-y-6">
                 <div class="flex items-center gap-3 border-b border-zinc-800 pb-4 ml-4">
                     <i class="fa-solid fa-comments text-indigo-500 text-sm"></i>
@@ -199,20 +260,85 @@ watch(() => props.id, fetchQuestion);
                     </h3>
                 </div>
 
+                <!-- Create response (only when logged in) -->
+                <div v-if="user" class="bg-zinc-900/60 border border-zinc-800 p-5 rounded-2xl">
+                    <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-3">Add your response</p>
+                    <textarea
+                        v-model="newResponseContent"
+                        placeholder="Share your intelligence (min 5 characters)..."
+                        rows="3"
+                        class="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-white text-sm focus:border-indigo-500 outline-none resize-y placeholder:text-zinc-600"
+                    ></textarea>
+                    <div v-if="responseError" class="mt-2 text-red-400 text-xs">{{ responseError }}</div>
+                    <div class="mt-3 flex items-center justify-between">
+                        <span class="text-zinc-600 text-[10px]">{{ newResponseContent.length }} / 2000</span>
+                        <button
+                            @click="addResponse"
+                            :disabled="submittingResponse || !newResponseContent?.trim() || newResponseContent.trim().length < 5"
+                            class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-white text-[10px] font-bold uppercase tracking-widest transition-all"
+                        >
+                            {{ submittingResponse ? 'Sending...' : 'Post response' }}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- List of responses (Read). Each card: Edit/Delete only if you own it (Update/Delete). -->
                 <div v-if="question.responses?.length" class="grid gap-4">
-                    <div v-for="res in question.responses" :key="res.id" 
+                    <div v-for="res in question.responses" :key="res.id"
                         class="bg-zinc-900/40 border border-zinc-800 p-6 rounded-3xl hover:border-zinc-700 transition-all flex gap-5">
-                        
-                        <div class="w-10 h-10 bg-zinc-800 rounded-xl flex items-center justify-center text-zinc-500 font-bold border border-zinc-700 flex-shrink-0">
+                        <div class="w-10 h-10 bg-zinc-800 rounded-xl flex items-center justify-center text-zinc-500 font-bold border border-zinc-700 shrink-0">
                             {{ res.author?.initial }}
                         </div>
-
-                        <div class="flex-grow">
-                            <div class="flex items-center justify-between mb-2">
+                        <div class="grow min-w-0">
+                            <div class="flex items-center justify-between gap-2 flex-wrap mb-2">
                                 <span class="text-white font-bold text-sm">{{ res.author?.name }}</span>
-                                <span class="text-zinc-600 text-[10px] font-bold uppercase">{{ res.created_at }}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-zinc-600 text-[10px] font-bold uppercase">{{ res.created_at }}</span>
+                                    <!-- Edit / Delete: only for the author of this response -->
+                                    <template v-if="res.is_owner">
+                                        <button
+                                            v-if="editingResponseId !== res.id"
+                                            @click="startEditResponse(res)"
+                                            class="p-1.5 rounded-lg text-zinc-500 hover:text-indigo-400 hover:bg-indigo-500/10 transition-colors"
+                                            title="Edit response"
+                                        >
+                                            <i class="fa-solid fa-pen text-[10px]"></i>
+                                        </button>
+                                        <button
+                                            v-if="editingResponseId !== res.id"
+                                            @click="deleteResponse(res)"
+                                            class="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                                            title="Delete response"
+                                        >
+                                            <i class="fa-solid fa-trash text-[10px]"></i>
+                                        </button>
+                                    </template>
+                                </div>
                             </div>
-                            <p class="text-zinc-400 text-sm leading-relaxed">{{ res.content }}</p>
+                            <!-- Inline edit mode -->
+                            <div v-if="editingResponseId === res.id" class="space-y-3">
+                                <textarea
+                                    v-model="editResponseContent"
+                                    rows="3"
+                                    class="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-white text-sm focus:border-indigo-500 outline-none resize-y"
+                                ></textarea>
+                                <div class="flex gap-2">
+                                    <button
+                                        @click="saveResponse(res)"
+                                        :disabled="!editResponseContent?.trim() || editResponseContent.trim().length < 5"
+                                        class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded-lg text-white text-[10px] font-bold uppercase"
+                                    >
+                                        Save
+                                    </button>
+                                    <button
+                                        @click="cancelEditResponse"
+                                        class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-300 text-[10px] font-bold uppercase"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                            <p v-else class="text-zinc-400 text-sm leading-relaxed">{{ res.content }}</p>
                         </div>
                     </div>
                 </div>
