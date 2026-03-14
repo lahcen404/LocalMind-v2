@@ -60,7 +60,15 @@ const goToFeed = () => router.push('/')
                         <i class="fa-regular fa-heart text-sm"></i>
                         <span class="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Favoris</span>
                     </router-link>
-                    
+                    <router-link
+                        v-if="user.role === 'admin'"
+                        to="/admin/dashboard"
+                        class="flex items-center gap-2 text-zinc-500 hover:text-rose-400 transition-colors"
+                        active-class="text-rose-400"
+                    >
+                        <i class="fa-solid fa-shield-halved text-sm"></i>
+                        <span class="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Admin</span>
+                    </router-link>
                     <div class="flex items-center gap-3">
                         <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest hidden sm:block">
                             Agent: {{ user.name }}
