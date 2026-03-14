@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import api from "@/services/api";
 
@@ -7,7 +7,10 @@ const router = useRouter();
 
 const questions = ref([]);
 const error = ref('');
-const loading = ref('');
+const loading = ref(false);
+
+const keyword = ref('');
+const location = ref('');
 
 const toggleFavorite = async (q, e) => {
     e?.stopPropagation?.();
@@ -25,7 +28,12 @@ const fetchQuestions = async () => {
     loading.value = true ;
 
     try{
-        const response = await api.get('/questions');
+        const response = await api.get('/questions',{
+            params: {
+                keyword: keyword.value,
+                location: location.value
+            }
+        });
 
             let rawData = response.data;
         if (typeof rawData === 'string') {
@@ -51,6 +59,13 @@ const fetchQuestions = async () => {
 
 }
 
+// reeefresh when user stops typing
+let timeout = null;
+watch([keyword, location], () => {
+    clearTimeout(timeout);
+    timeout = setTimeout(fetchQuestions, 500); // waait 500ms before calling API
+});
+
 onMounted(fetchQuestions);
 
 </script>
@@ -59,20 +74,40 @@ onMounted(fetchQuestions);
     <div class="w-full max-w-4xl mx-auto py-8 px-4">
         
         <!-- Feed Header -->
-        <div class="flex items-center justify-between mb-10">
+        <div class="flex items-center justify-between mb-6">
             <div>
                 <h2 class="text-3xl font-black text-white italic uppercase tracking-tighter">Community Feed</h2>
                 <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.3em] mt-1">Real-time intelligence stream</p>
             </div>
             
-            <button @click="fetchQuestions" 
-                class="p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-zinc-400 hover:text-indigo-400 transition-all active:scale-95">
-                <i class="fa-solid fa-rotate-right" :class="{ 'animate-spin': loading }"></i>
-            </button>
+            <div class="flex gap-2">
+                <button @click="router.push('/questions/create')" 
+                    class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all active:scale-95 shadow-lg shadow-indigo-900/20">
+                    New Inquiry
+                </button>
+                <button @click="fetchQuestions" 
+                    class="p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-zinc-400 hover:text-indigo-400 transition-all active:scale-95">
+                    <i class="fa-solid fa-rotate-right" :class="{ 'animate-spin': loading }"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Search & Filter Bar -->
+        <div class="bg-zinc-900 border border-zinc-800 p-4 rounded-3xl mb-10 flex flex-col md:flex-row gap-4 shadow-xl">
+            <div class="flex-grow relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600"></i>
+                <input v-model="keyword" type="text" placeholder="Search keywords..." 
+                    class="w-full bg-zinc-950 border border-zinc-800 rounded-xl py-3 pl-11 pr-4 text-sm text-white focus:border-indigo-500 outline-none transition-all">
+            </div>
+            <div class="md:w-1/3 relative">
+                <i class="fa-solid fa-location-dot absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600"></i>
+                <input v-model="location" type="text" placeholder="Location..." 
+                    class="w-full bg-zinc-950 border border-zinc-800 rounded-xl py-3 pl-11 pr-4 text-sm text-white focus:border-indigo-500 outline-none transition-all">
+            </div>
         </div>
 
         <!-- Loading Skeletons -->
-        <div v-if="loading" class="space-y-6">
+        <div v-if="loading && questions.length === 0" class="space-y-6">
             <div v-for="i in 3" :key="i" class="h-40 bg-zinc-900/40 border border-zinc-800 rounded-[2rem] animate-pulse"></div>
         </div>
 
@@ -108,7 +143,7 @@ onMounted(fetchQuestions);
                     {{ q.content }}
                 </p>
 
-                <!-- Card Footer (Author info) -->
+                <!-- Card Footer -->
                 <div class="flex items-center justify-between border-t border-zinc-800/50 pt-4 mt-auto">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-500 font-bold text-xs border border-zinc-700">
@@ -123,15 +158,17 @@ onMounted(fetchQuestions);
                             <i class="fa-regular fa-comment text-xs"></i>
                             <span class="text-[10px] font-bold">{{ q.metrics?.responses_count || 0 }}</span>
                         </div>
+                        
+                        <!-- Favorite Button (Propagated to prevent navigating to details) -->
                         <button
                             @click="toggleFavorite(q, $event)"
-                            class="flex items-center gap-1.5 hover:text-red-400 transition-colors"
+                            class="flex items-center gap-1.5 hover:text-red-400 transition-colors pointer-events-auto"
                             :class="q.is_favorited ? 'text-red-400' : ''"
-                            :title="q.is_favorited ? 'Remove from favorites' : 'Add to favorites'"
                         >
                             <i :class="q.is_favorited ? 'fa-solid fa-heart' : 'fa-regular fa-heart'" class="text-xs"></i>
                             <span class="text-[10px] font-bold">{{ q.metrics?.favorites_count ?? 0 }}</span>
                         </button>
+                        
                         <i class="fa-solid fa-chevron-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
                     </div>
                 </div>

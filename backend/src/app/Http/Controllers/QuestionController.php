@@ -52,12 +52,12 @@ class QuestionController extends Controller
             ->withCount(['responses', 'favoritedBy'])
             ->when($keyword, function ($query, $keyword) {
                 return $query->where(function ($q) use ($keyword) {
-                    $q->where('title', 'like', "%{$keyword}%")
-                      ->orWhere('content', 'like', "%{$keyword}%");
+                    $q->where('title', 'ilike', "%{$keyword}%")
+                      ->orWhere('content', 'ilike', "%{$keyword}%");
                 });
             })
             ->when($location, function ($query, $location) {
-                return $query->where('location', 'like', "%{$location}%");
+                return $query->where('location', 'ilike', "%{$location}%");
             })
             ->latest()
             ->paginate(15);
