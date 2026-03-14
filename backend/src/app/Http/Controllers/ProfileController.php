@@ -29,8 +29,6 @@ class ProfileController extends Controller
     public function show()
     {
         $user = Auth::user();
-
-
         $user->loadCount(['questions', 'responses', 'favoriteQuestions']);
 
         return new ProfileResource($user);

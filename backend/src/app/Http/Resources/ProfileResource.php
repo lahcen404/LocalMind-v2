@@ -28,7 +28,6 @@ class ProfileResource extends JsonResource
                 'favorites_count' => $this->favorite_questions_count ?? $this->favoriteQuestions()->count(),
             ],
 
-
             'recent_questions' => QuestionResource::collection($this->whenLoaded('questions')),
         ];
     }
