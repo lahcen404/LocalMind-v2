@@ -19,6 +19,8 @@ const isOwner = (q) => {
   if (!user?.value || !q?.author) return false;
   return Number(q.author.id) === Number(user.value.id);
 };
+const isAdmin = () => user?.value?.role === 'admin';
+const canDelete = (q) => isOwner(q) || isAdmin();
 
 const toggleFavorite = async (q, e) => {
   e?.stopPropagation?.();
@@ -252,28 +254,29 @@ onMounted(fetchQuestions);
 
           <!-- Right side: actions + metrics -->
           <div class="flex items-center gap-3 flex-wrap">
-            <!-- Owner actions: Edit & Delete (only for your questions) -->
-            <div
+          <!-- Owner: Edit. Owner or Admin: Delete -->
+          <div
+            v-if="canDelete(q)"
+            class="flex items-center gap-2 pointer-events-auto mr-1"
+          >
+            <button
               v-if="isOwner(q)"
-              class="flex items-center gap-2 pointer-events-auto mr-1"
+              @click="goToEdit(q, $event)"
+              class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-zinc-800/80 border border-zinc-700 text-zinc-400 hover:text-indigo-400 hover:border-indigo-500/40 hover:bg-indigo-500/10 text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95"
+              title="Edit question"
             >
-              <button
-                @click="goToEdit(q, $event)"
-                class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-zinc-800/80 border border-zinc-700 text-zinc-400 hover:text-indigo-400 hover:border-indigo-500/40 hover:bg-indigo-500/10 text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95"
-                title="Edit question"
-              >
-                <i class="fa-solid fa-pen text-[10px]"></i>
-                <span>Edit</span>
-              </button>
-              <button
-                @click="deleteQuestion(q, $event)"
-                class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-zinc-800/80 border border-zinc-700 text-zinc-400 hover:text-red-400 hover:border-red-500/40 hover:bg-red-500/10 text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95"
-                title="Delete question"
-              >
-                <i class="fa-solid fa-trash text-[10px]"></i>
-                <span>Delete</span>
-              </button>
-            </div>
+              <i class="fa-solid fa-pen text-[10px]"></i>
+              <span>Edit</span>
+            </button>
+            <button
+              @click="deleteQuestion(q, $event)"
+              class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-zinc-800/80 border border-zinc-700 text-zinc-400 hover:text-red-400 hover:border-red-500/40 hover:bg-red-500/10 text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95"
+              title="Delete question"
+            >
+              <i class="fa-solid fa-trash text-[10px]"></i>
+              <span>Delete</span>
+            </button>
+          </div>
 
             <!-- Metrics -->
             <div class="flex items-center gap-4 text-zinc-600">

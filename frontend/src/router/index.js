@@ -4,7 +4,8 @@ import Register from '@/components/Register.vue';
 import QuestionFeed from '@/components/QuestionFeed.vue';
 import QuestionDetail from '@/components/QuestionDetail.vue';
 import Favorites from '@/components/Favorites.vue';
-import PostQuestion from '../components/PostQuestion.vue';
+import PostQuestion from '@/components/PostQuestion.vue';
+import AdminDashboard from '@/components/AdminDashboard.vue';
 
 const routes = [
   {
@@ -43,6 +44,12 @@ const routes = [
     component: QuestionDetail,
     props: true,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/admin/dashboard',
+    name: 'AdminDashboard',
+    component: AdminDashboard,
+    meta: { requiresAuth: true, requiresAdmin: true }
   }
 ];
 
@@ -55,15 +62,28 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const isAuthenticated = !!localStorage.getItem('lm_token');
 
-  // redirect to login if route requires auth and user is not authenticated
- 
-  // redirect to home if route is guest only and user is authenticated
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    next('/login');
+    return;
+  }
+  if (to.meta.requiresAdmin && isAuthenticated) {
+    try {
+      const saved = localStorage.getItem('lm_user');
+      const user = saved ? JSON.parse(saved) : null;
+      if (!user || user.role !== 'admin') {
+        next('/');
+        return;
+      }
+    } catch (_) {
+      next('/');
+      return;
+    }
+  }
   if (to.meta.guestOnly && isAuthenticated) {
     next('/');
+    return;
   }
-  else {
-    next();
-  }
+  next();
 });
 
 export default router;

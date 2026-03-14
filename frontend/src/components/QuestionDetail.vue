@@ -27,6 +27,9 @@ const isOwner = computed(() => {
     return Number(q.author.id) === Number(user.value.id);
 });
 
+const isAdmin = computed(() => user?.value?.role === 'admin');
+const canDelete = computed(() => isOwner.value || isAdmin.value);
+
 const fetchQuestion = async () => {
     error.value = '';
     loading.value = true;
@@ -181,10 +184,10 @@ watch(() => props.id, fetchQuestion);
                             Broadcast {{ question.created_at }}
                         </span>
                     </div>
-                    <!-- Owner actions: Edit & Delete -->
-                    <div v-if="isOwner" class="flex items-center gap-2">
+                    <!-- Owner: Edit. Owner or Admin: Delete -->
+                    <div v-if="canDelete" class="flex items-center gap-2">
                         <button
-                            v-if="!editing"
+                            v-if="isOwner && !editing"
                             @click="startEdit"
                             class="px-3 py-1.5 rounded-lg border border-zinc-700 text-zinc-400 hover:text-indigo-400 hover:border-indigo-500/50 text-[10px] font-bold uppercase tracking-widest transition-colors"
                         >
