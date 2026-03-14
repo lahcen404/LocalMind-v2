@@ -45,6 +45,11 @@ class QuestionController extends Controller
     */
    public function index(Request $request)
     {
+        if ($request->bearerToken()) {
+            $user = Auth::guard('sanctum')->user();
+            if ($user) { Auth::setUser($user); }
+        }
+
         $keyword = $request->input('keyword');
         $location = $request->input('location');
 
@@ -61,17 +66,6 @@ class QuestionController extends Controller
             })
             ->latest()
             ->paginate(15);
-
-        if (Auth::check()) {
-            $favoritedIds = Auth::user()
-                ->favoriteQuestions()
-                ->whereIn('questions.id', $questions->pluck('id'))
-                ->pluck('questions.id')
-                ->flip();
-            foreach ($questions as $q) {
-                $q->setAttribute('is_favorited', $favoritedIds->has($q->id));
-            }
-        }
 
         return QuestionResource::collection($questions);
     }
@@ -143,12 +137,14 @@ class QuestionController extends Controller
      *     )
      * )
      */
-    public function show(Question $question)
+    public function show(Request $request, Question $question)
     {
-        $question->load(['user', 'responses.user']);
-        if (Auth::check()) {
-            $question->setAttribute('is_favorited', $question->isFavoritedBy(Auth::user()));
+        if ($request->bearerToken()) {
+            $user = Auth::guard('sanctum')->user();
+            if ($user) { Auth::setUser($user); }
         }
+
+        $question->load(['user', 'responses.user']);
         return new QuestionResource($question);
     }
 

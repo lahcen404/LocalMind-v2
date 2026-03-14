@@ -56,11 +56,9 @@ router.beforeEach((to, from, next) => {
   const isAuthenticated = !!localStorage.getItem('lm_token');
 
   // redirect to login if route requires auth and user is not authenticated
-  if (to.meta.requiresAuth && !isAuthenticated) {
-    next('/login');
-  }
+ 
   // redirect to home if route is guest only and user is authenticated
-  else if (to.meta.guestOnly && isAuthenticated) {
+  if (to.meta.guestOnly && isAuthenticated) {
     next('/');
   }
   else {
