@@ -30,6 +30,10 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
         $user->loadCount(['questions', 'responses', 'favoriteQuestions']);
+        $user->setRelation(
+            'questions',
+            $user->questions()->with('user')->withCount(['responses', 'favoritedBy'])->latest()->take(10)->get()
+        );
 
         return new ProfileResource($user);
     }

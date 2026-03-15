@@ -6,6 +6,7 @@ import QuestionDetail from '@/components/QuestionDetail.vue';
 import Favorites from '@/components/Favorites.vue';
 import PostQuestion from '@/components/PostQuestion.vue';
 import AdminDashboard from '@/components/AdminDashboard.vue';
+import Profile from '@/components/Profile.vue';
 
 const routes = [
   {
@@ -50,6 +51,12 @@ const routes = [
     name: 'AdminDashboard',
     component: AdminDashboard,
     meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: Profile,
+    meta: { requiresAuth: true }
   }
 ];
 

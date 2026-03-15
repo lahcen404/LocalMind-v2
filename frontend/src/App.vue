@@ -70,9 +70,12 @@ const goToFeed = () => router.push('/')
                         <span class="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Admin</span>
                     </router-link>
                     <div class="flex items-center gap-3">
-                        <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest hidden sm:block">
+                        <router-link
+                            to="/profile"
+                            class="text-[10px] font-black text-zinc-500 hover:text-indigo-400 uppercase tracking-widest hidden sm:block transition-colors"
+                        >
                             Agent: {{ user.name }}
-                        </span>
+                        </router-link>
                         <button @click="logout" 
                             class="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-500 hover:text-red-400 hover:border-red-500/30 transition-all active:scale-95"
                             title="Déconnexion">
