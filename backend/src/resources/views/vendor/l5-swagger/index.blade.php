@@ -3,26 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <title>{{ $documentationTitle }}</title>
+
+    {{-- Use Swagger UI from CDN so we don't depend on local assets --}}
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+
+    <style>
+        html {
+            box-sizing: border-box;
+            overflow-y: scroll;
+        }
+        *, *:before, *:after {
+            box-sizing: inherit;
+        }
+        body {
+            margin: 0;
+            background: #020617; /* match app dark bg */
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        #swagger-ui {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 24px 16px 40px;
+            background: #0b1120;
+        }
+    </style>
+</head>
+<body>
+<div id="swagger-ui"></div>
+
+{{-- Swagger UI from CDN --}}
+<script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+<script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js"></script>
+<script>
+    window.onload = function () {
+        const urls = [];
+        @foreach($urlsToDocs as $title => $url)
+            urls.push({name: "{{ $title }}", url: "{{ $url }}"});
+        @endforeach
+
+        const ui = SwaggerUIBundle({
+            dom_id: '#swagger-ui',
+            urls: urls,
+            "urls.primaryName": "{{ $documentationTitle }}",
+            layout: "StandaloneLayout",
+            deepLinking: true,
+            docExpansion: "none"
+        });
+
+        window.ui = ui;
+    };
+</script>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ $documentationTitle }}</title>
     <link rel="stylesheet" type="text/css" href="{{ l5_swagger_asset($documentation, 'swagger-ui.css') }}">
     <link rel="icon" type="image/png" href="{{ l5_swagger_asset($documentation, 'favicon-32x32.png') }}" sizes="32x32"/>
     <link rel="icon" type="image/png" href="{{ l5_swagger_asset($documentation, 'favicon-16x16.png') }}" sizes="16x16"/>
     <style>
-    html
-    {
+    html {
         box-sizing: border-box;
-        overflow: -moz-scrollbars-vertical;
         overflow-y: scroll;
     }
     *,
     *:before,
-    *:after
-    {
+    *:after {
         box-sizing: inherit;
     }
 
     body {
-      margin:0;
-      background: #fafafa;
+      margin: 0;
+      background: #020617; /* zinc-950 style */
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    #swagger-ui {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 16px 40px;
     }
     </style>
     @if(config('l5-swagger.defaults.ui.display.dark_mode'))
