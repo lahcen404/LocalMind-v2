@@ -34,6 +34,11 @@ class QuestionResource extends JsonResource
                 'responses_count' => (int) ($this->responses_count ?? $this->responses()->count()),
                 'favorites_count' => (int) ($this->favorited_by_count ?? $this->favoritedBy()->count()),
             ],
+
+            'is_favorited' => isset($this->is_favorited)
+                ? (bool) $this->is_favorited
+                : ($request->user() && $this->isFavoritedBy($request->user())),
+            'is_owner' => $request->user() && (int) $this->user_id === (int) $request->user()->id,
             'responses' => ResponseResource::collection($this->whenLoaded('responses')),
 
         ];
